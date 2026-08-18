@@ -60,6 +60,46 @@ jobs:
           gh release create build-latest --title "Latest Android build" --prerelease --notes "Auto build from commit ${GITHUB_SHA::7}" || true
           gh release upload build-latest android/app/build/outputs/apk/debug/app-debug.apk --clobber
 
+      # --- Signed RELEASE APK (only when both secrets are set) ---
+      - name: Restore release keystore from secrets
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
+        working-directory: android
+        run: |
+          echo "$ANDROID_KEYSTORE_PROPS" > keystore.properties
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > ai-chat-release.keystore
+          echo "keystore restored: $(ls -l ai-chat-release.keystore | awk '{print $5}') bytes"
+
+      - name: Build signed release APK
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Upload signed release APK
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-chat-android-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Publish signed release APK to Release
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
+        run: |
+          gh release upload build-latest android/app/build/outputs/apk/release/app-release.apk --clobber || true
+
   build-ios:
     runs-on: macos-latest
     steps:

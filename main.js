@@ -12,9 +12,26 @@ app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-gpu-sandbox');
 
-// Update server URL
+// Update source URLs (v1.5.1+: stable GitHub-hosted version.json; jsDelivr as CDN fallback.
+// The CloudStudio sandbox URL rotates between deployments, so it must NOT be baked into the exe.)
+const UPDATE_SOURCES = [
+  'https://raw.githubusercontent.com/wangpengkun/ai-group-chat/main/result',
+  'https://cdn.jsdelivr.net/gh/wangpengkun/ai-group-chat@main/result'
+];
+// Where installers are hosted for download (explicit downloadUrl in version.json takes priority)
 const UPDATE_URL = 'https://02aeb0d7dbf74bb087de2f8551341eb2.app.workbuddy.link';
 const APP_VERSION = app.getVersion();
+
+// Fetch version.json trying each stable source in order
+async function fetchVersionInfo() {
+  let lastErr = null;
+  for (const src of UPDATE_SOURCES) {
+    try {
+      return await fetchJSON(`${src}/version.json`);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('All update sources failed');
+}
 
 // ============ WorkBuddy Authentication ============
 // WorkBuddy / TokenHub / Token Plan 都使用单 token Bearer 认证（key 格式类似 ck_xxxx）
@@ -441,7 +458,7 @@ function fetchJSON(url) {
 // Check for updates
 ipcMain.handle('check-for-updates', async () => {
   try {
-    const versionInfo = await fetchJSON(`${UPDATE_URL}/version.json`);
+    const versionInfo = await fetchVersionInfo();
     const hasUpdate = isNewerVersion(versionInfo.version, APP_VERSION);
     return {
       hasUpdate: hasUpdate,
@@ -460,7 +477,7 @@ ipcMain.handle('download-update', async (event, options) => {
   try {
     const downloadUrl = options && options.url ? options.url : null;
     if (!downloadUrl) {
-      const updateInfo = await fetchJSON(`${UPDATE_URL}/version.json`);
+      const updateInfo = await fetchVersionInfo();
       const url = updateInfo.downloadUrl || `${UPDATE_URL}/AI-Group-Chat-Setup-${updateInfo.version}.exe`;
       return await downloadAndInstall(url, event);
     }

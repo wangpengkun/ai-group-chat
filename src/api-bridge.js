@@ -341,17 +341,71 @@ const APIBridge = {
     if (this.isElectron) window.electronAPI.onStreamError(callback);
   },
 
-  // ============ Auto-update (Electron only) ============
+  // ============ Auto-update ============
+
+  // Stable public version sources (both send Access-Control-Allow-Origin: * so browsers can fetch)
+  _versionSources: [
+    'https://raw.githubusercontent.com/wangpengkun/ai-group-chat/main/result/version.json',
+    'https://cdn.jsdelivr.net/gh/wangpengkun/ai-group-chat@main/result/version.json'
+  ],
+
+  _localVersion() {
+    const el = document.getElementById('app-version');
+    const m = ((el && el.textContent) || '').match(/\d+\.\d+\.\d+/);
+    return m ? m[0] : '0.0.0';
+  },
+
+  _isNewer(remote, local) {
+    const r = String(remote).split('.').map(Number);
+    const l = String(local).split('.').map(Number);
+    for (let i = 0; i < Math.max(r.length, l.length); i++) {
+      const rv = r[i] || 0, lv = l[i] || 0;
+      if (rv > lv) return true;
+      if (rv < lv) return false;
+    }
+    return false;
+  },
 
   async checkForUpdates() {
     if (this.isElectron) return window.electronAPI.checkForUpdates();
-    // Mobile: no auto-update, return no update
-    return { hasUpdate: false };
+    // Web / PWA / APK: compare remote version.json against the local build version
+    let info = null, lastErr = null;
+    for (const src of this._versionSources) {
+      try {
+        const res = await fetch(src, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        info = await res.json();
+        break;
+      } catch (e) { lastErr = e; }
+    }
+    const local = this._localVersion();
+    if (!info) return { hasUpdate: false, error: lastErr ? lastErr.message : 'fetch failed', currentVersion: local };
+    // APK: point at the APK package; PWA/browser: point at the download page
+    const downloadUrl = this.isCapacitor
+      ? (info.apkUrl || info.downloadPage || '')
+      : (info.downloadPage || info.apkUrl || '');
+    if (this._isNewer(info.version, local)) this._lastUpdateUrl = downloadUrl;
+    return {
+      hasUpdate: this._isNewer(info.version, local),
+      version: info.version,
+      currentVersion: local,
+      downloadUrl: downloadUrl,
+      releaseNotes: info.releaseNotes || ''
+    };
   },
 
   async downloadUpdate() {
     if (this.isElectron) return window.electronAPI.downloadUpdate();
-    return { success: false };
+    // Web / PWA / APK: open the download URL (APK file or download page) externally
+    const url = this._lastUpdateUrl || '';
+    if (!url) return { success: false, error: '下载地址不可用，请到发布页手动下载' };
+    try {
+      const win = window.open(url, '_blank');
+      if (!win) window.location.href = url; // popup blocked -> navigate (apk link triggers system download)
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   },
 
   onUpdateDownloadProgress(callback) {
