@@ -9,6 +9,8 @@ on:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -50,6 +52,13 @@ jobs:
           name: ai-chat-android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Publish APK to public Release (stable URL)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create build-latest --title "Latest Android build" --prerelease --notes "Auto build from commit ${GITHUB_SHA::7}" || true
+          gh release upload build-latest android/app/build/outputs/apk/debug/app-debug.apk --clobber
 
   build-ios:
     runs-on: macos-latest
