@@ -1,0 +1,8 @@
+{
+  "version": "1.5.0",
+  "releaseDate": "2026-08-18",
+  "changelog": "v1.5.0 三大能力升级：①文档/代码读取——会话输入框新增📎附件按钮，可上传 PDF、Word(.docx)、txt 及各类源码文件作为「参考资料」，注入给群内所有 AI 成员作为上下文；②手机端微信风适配——新增底部 Tab 栏（会话/通讯录/我）、全屏聊天、抽屉式通讯录与安全区适配，PWA 与 Capacitor 原生壳三端共用；③原生安装包路线——接入 GitHub Actions 云构建流水线，可一键产出 Android APK 与 iOS 未签名 IPA。",
+  "releaseNotes": "新增文档/代码读取（PDF/Word/txt/源码注入 AI 上下文）；手机端微信风 UI 适配；接入 APK/IPA 云构建。",
+  "fileName": "AI-Group-Chat-Setup-1.5.0.exe",
+  "fileSize": "78 MB"
+}

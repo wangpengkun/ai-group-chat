@@ -1,0 +1,117 @@
+name: Build Mobile Apps
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Capacitor
+        run: npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 --save
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-chat-android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Capacitor
+        run: npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/ios@6 --save
+
+      - name: Add iOS platform
+        run: npx cap add ios || true
+
+      - name: Sync iOS
+        run: npx cap sync ios
+
+      # Build an UNSIGNED archive (no Apple Developer cert required).
+      # A real, installable IPA still needs Apple Developer signing (TestFlight / App Store).
+      - name: Build unsigned archive
+        working-directory: ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO archive -archivePath build/App.xcarchive
+
+      - name: Generate ExportOptions.plist (ad-hoc, unsigned)
+        working-directory: ios/App
+        run: |
+          cat > ExportOptions.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Export IPA (best-effort, requires signing to succeed)
+        working-directory: ios/App
+        run: |
+          xcodebuild -exportArchive -archivePath build/App.xcarchive -exportPath build/ipa -exportOptionsPlist ExportOptions.plist CODE_SIGNING_ALLOWED=NO || true
+
+      - name: Upload IPA (if produced)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-chat-ios-ipa
+          path: ios/App/build/ipa/*.ipa
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload unsigned build (xcarchive) as fallback
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-chat-ios-build
+          path: ios/App/build/App.xcarchive
+          if-no-files-found: ignore
+          retention-days: 30

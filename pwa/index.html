@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#07c160">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AI Chat">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <title>AI Group Chat</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Title bar -->
+    <div class="title-bar">
+      <div class="title-bar-text">AI Group Chat</div>
+      <div class="title-bar-actions">
+        <button class="title-btn" id="btn-settings" title="设置">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Update notification bar -->
+    <div class="update-bar" id="update-bar" style="display:none">
+      <span class="update-bar-text" id="update-bar-text"></span>
+      <button class="update-bar-btn" id="btn-download-update">立即更新</button>
+      <button class="update-bar-close" id="btn-dismiss-update">×</button>
+    </div>
+
+    <!-- Main layout -->
+    <div class="main-layout">
+      <!-- Mobile backdrop -->
+      <div class="mobile-backdrop" id="mobile-backdrop"></div>
+      <!-- Left: Navigation + Panels -->
+      <div class="sidebar" id="sidebar">
+        <!-- Nav icons -->
+        <div class="nav-bar">
+          <div class="nav-avatar" id="nav-avatar" title="我的AI助手">
+            <span>AI</span>
+          </div>
+          <button class="nav-btn active" id="nav-chats" title="聊天">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+          <button class="nav-btn" id="nav-contacts" title="通讯录">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </button>
+          <div class="nav-spacer"></div>
+          <button class="nav-btn" id="nav-settings" title="设置">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Chats panel -->
+        <div class="conv-panel" id="chats-panel">
+          <div class="conv-search">
+            <input type="text" id="search-input" placeholder="搜索聊天..." />
+          </div>
+          <div class="conv-list" id="conv-list">
+          </div>
+          <div class="conv-actions">
+            <button class="conv-action-btn" id="btn-new-single" title="发起单聊">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>发起单聊</span>
+            </button>
+            <button class="conv-action-btn" id="btn-new-group" title="发起群聊">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>发起群聊</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contacts panel -->
+        <div class="conv-panel" id="contacts-panel" style="display:none">
+          <div class="conv-search">
+            <span class="panel-title">通讯录</span>
+            <button class="mini-btn" id="btn-add-friend" title="添加新AI好友">+</button>
+          </div>
+          <div class="contacts-list" id="contacts-list">
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Chat Window -->
+      <div class="chat-window" id="chat-window">
+        <div class="chat-empty" id="chat-empty">
+          <div class="chat-empty-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <p>选择一个聊天开始对话，或新建聊天</p>
+          <p class="chat-empty-sub">支持与 DeepSeek、通义千问、豆包等多个 AI 一起群聊</p>
+        </div>
+
+        <div class="chat-active" id="chat-active" style="display:none">
+          <div class="chat-header" id="chat-header">
+            <button class="menu-toggle" id="btn-menu-toggle" title="菜单">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <div class="chat-header-info">
+              <div class="chat-header-name" id="chat-header-name">聊天名称</div>
+              <div class="chat-header-sub" id="chat-header-sub">副标题</div>
+              <div class="chat-header-members" id="chat-header-members"></div>
+            </div>
+            <div class="chat-header-actions">
+              <button class="header-btn" id="btn-clear-chat" title="清空聊天记录">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+              <button class="header-btn" id="btn-chat-info" title="聊天信息">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="messages-container" id="messages-container">
+          </div>
+
+          <div class="input-area">
+            <div class="attachment-previews" id="attachment-previews" style="display:none"></div>
+            <div class="input-box">
+              <button class="attach-btn" id="btn-attach" title="添加文档 / 代码（PDF、Word、txt、源码等）" type="button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </button>
+              <textarea id="message-input" placeholder="输入消息... （群聊输入 @ 会弹出成员选择）" rows="1"></textarea>
+              <button class="send-btn" id="btn-send" title="发送">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </div>
+            <input type="file" id="file-attach" multiple
+              accept=".txt,.md,.markdown,.json,.csv,.xml,.log,.js,.ts,.jsx,.tsx,.py,.java,.go,.c,.cpp,.h,.cs,.php,.rb,.rs,.swift,.kt,.sh,.sql,.html,.css,.pdf,.docx,text/*"
+              style="display:none" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Info Panel -->
+      <div class="info-panel" id="info-panel" style="display:none">
+        <div class="info-header">
+          <span class="panel-title">聊天信息</span>
+          <button class="mini-btn" id="btn-close-info">×</button>
+        </div>
+        <div class="info-content" id="info-content">
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile bottom tab bar (WeChat style, only shown on narrow screens) -->
+    <nav class="bottom-tabbar" id="bottom-tabbar">
+      <button class="tab-item active" id="tab-chats" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>会话</span>
+      </button>
+      <button class="tab-item" id="tab-contacts" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>通讯录</span>
+      </button>
+      <button class="tab-item" id="tab-me" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+        <span>我</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ============ Modals ============ -->
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modal-settings" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>设置</h2>
+        <button class="modal-close" data-modal="modal-settings">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-tab="general">通用</button>
+          <button class="settings-tab" data-tab="data">数据管理</button>
+          <button class="settings-tab" data-tab="about">关于</button>
+        </div>
+        <div class="settings-content">
+          <div class="settings-pane active" data-pane="general">
+            <div class="form-group">
+              <label>用户昵称</label>
+              <input type="text" id="setting-username" placeholder="我的昵称" />
+            </div>
+            <div class="form-group">
+              <label>用户头像（Emoji）</label>
+              <input type="text" id="setting-useravatar" placeholder="🙂" maxlength="4" />
+            </div>
+            <div class="form-group">
+              <label>群聊默认回复模式</label>
+              <select id="setting-reply-mode">
+                <option value="sequential">顺序回复（AI能看到前面AI的回答）</option>
+                <option value="parallel">并行回复（AI同时独立回答）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>回复间隔（毫秒）</label>
+              <input type="number" id="setting-reply-delay" value="500" min="0" max="10000" step="100" />
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="setting-auto-continue" checked />
+                群聊自动继续讨论（达成共识或达到最大轮次后停止，可随时说"暂停"停止）
+              </label>
+            </div>
+            <div class="form-group">
+              <label>群聊最大讨论轮次（0 = 不限）</label>
+              <input type="number" id="setting-max-rounds" value="5" min="0" max="50" step="1" />
+              <p class="settings-desc" style="margin-top:4px;font-size:12px;color:#999;">到达最大轮次仍未达成共识时，强行终止话题。新建群组时如未单独设置，将使用此默认值。</p>
+            </div>
+            <div class="form-group">
+              <label>共识度达成阈值（%）</label>
+              <input type="number" id="setting-consensus-threshold" value="95" min="0" max="100" step="1" />
+              <p class="settings-desc" style="margin-top:4px;font-size:12px;color:#999;">每轮所有 AI 发言后，由最后发言的 AI 收集并整理各方观点、计算共识度（0-100%）。达到该阈值即强制输出共识文档并结束对话；未达则继续讨论。</p>
+            </div>
+          </div>
+          <div class="settings-pane" data-pane="data">
+            <p class="settings-desc">所有数据保存在本地，不会上传到服务器。</p>
+            <div class="form-group">
+              <label>跨设备同步（仅配置）</label>
+              <p class="settings-desc" style="margin-bottom:8px;">把 AI 好友列表、API Key、聊天规则等配置同步到手机或其他电脑，<b>不含聊天记录</b>。导出后在另一台设备上「导入配置」即可。</p>
+              <div class="form-actions">
+                <button class="btn-primary" id="btn-export-config">导出配置</button>
+                <button class="btn-secondary" id="btn-import-config">导入配置</button>
+                <button class="btn-secondary" id="btn-sync-export">生成同步二维码</button>
+              </div>
+              <input type="file" id="file-import-config" accept=".json,application/json" style="display:none" />
+            </div>
+            <div class="form-group">
+              <label>数据备份</label>
+              <p class="settings-desc" style="margin-bottom:8px;">导出全部数据（含聊天记录）用于本地备份。</p>
+              <div class="form-actions">
+                <button class="btn-secondary" id="btn-export-data">导出全部数据（含聊天记录）</button>
+                <button class="btn-danger" id="btn-clear-data">清空所有数据</button>
+              </div>
+            </div>
+          </div>
+          <div class="settings-pane" data-pane="about">
+            <div class="about-info">
+              <h3>AI Group Chat</h3>
+              <p>版本 <span id="app-version">1.5.0</span></p>
+              <p>与多个 AI 智能体一起群聊的桌面应用</p>
+              <p class="about-desc">支持 DeepSeek、通义千问、豆包、Kimi、智谱、WorkBuddy 等 OpenAI 兼容接口的 AI 模型。创建群聊后，多个 AI 可以针对同一话题进行讨论，每个AI可以配置独立的聊天规则。</p>
+              <div style="margin-top:16px;">
+                <button class="btn-secondary" id="btn-check-update" style="width:100%;">检查更新</button>
+                <div id="update-status" style="margin-top:8px;font-size:13px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-save-settings">保存</button>
+        <button class="btn-secondary" data-close="modal-settings">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit AI Friend Modal -->
+  <div class="modal-overlay" id="modal-agent" style="display:none">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 id="agent-modal-title">添加 AI 好友</h2>
+        <button class="modal-close" data-modal="modal-agent">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Section 1: Basic Info -->
+        <div class="form-section">
+          <div class="form-section-title">基本信息</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label>接入方式</label>
+              <select id="agent-channel">
+                <option value="">-- 先选择接入方式 --</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>选择 AI</label>
+              <select id="agent-ai-model">
+                <option value="">-- 再选择AI --</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>名称</label>
+            <input type="text" id="agent-name" placeholder="如：DeepSeek" />
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label>头像（Emoji）</label>
+              <input type="text" id="agent-avatar" placeholder="🤖" maxlength="4" />
+            </div>
+            <div class="form-group" style="flex:2">
+              <label>头像颜色</label>
+              <div class="color-picker" id="agent-color-picker">
+                <div class="color-option" data-color="#4f46e5" style="background:#4f46e5"></div>
+                <div class="color-option" data-color="#059669" style="background:#059669"></div>
+                <div class="color-option" data-color="#dc2626" style="background:#dc2626"></div>
+                <div class="color-option" data-color="#d97706" style="background:#d97706"></div>
+                <div class="color-option" data-color="#7c3aed" style="background:#7c3aed"></div>
+                <div class="color-option" data-color="#0891b2" style="background:#0891b2"></div>
+                <div class="color-option" data-color="#db2777" style="background:#db2777"></div>
+                <div class="color-option" data-color="#2563eb" style="background:#2563eb"></div>
+                <div class="color-option" data-color="#0052D9" style="background:#0052D9"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: API Config -->
+        <div class="form-section">
+          <div class="form-section-title">API 配置</div>
+          <div class="channel-info" id="channel-info" style="display:none"></div>
+          <input type="hidden" id="agent-api-url" />
+          <div class="form-group">
+            <label>API Key</label>
+            <input type="password" id="agent-api-key" placeholder="选择接入方式后显示提示" />
+            <div class="form-hint" id="api-key-hint" style="display:none"></div>
+          </div>
+          <input type="hidden" id="agent-model" />
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label>温度 (0-2)</label>
+              <input type="number" id="agent-temperature" value="0.7" min="0" max="2" step="0.1" />
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>最大Token</label>
+              <input type="number" id="agent-max-tokens" value="2048" min="1" max="32768" step="128" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="agent-stream" checked /> 使用流式输出
+            </label>
+          </div>
+          <div class="form-group">
+            <button class="btn-secondary" id="btn-test-agent" style="width:100%">测试连接</button>
+          </div>
+          <div class="test-result" id="test-result" style="display:none"></div>
+        </div>
+
+        <!-- Section 3: AI 人设与规则 -->
+        <div class="form-section">
+          <div class="form-section-title">
+            AI 人设与规则
+            <span class="form-section-hint">这些字段都会作为系统提示词发给大模型，让AI按角色和规则和你聊天</span>
+          </div>
+
+          <!-- 所属角色（业务角色） -->
+          <div class="form-group">
+            <label>所属角色</label>
+            <select id="agent-role">
+              <option value="">-- 选择角色 --</option>
+              <option value="market_insight">📊 市场洞察</option>
+              <option value="product">🎯 产品</option>
+              <option value="presales">🤝 售前</option>
+              <option value="development">💻 开发</option>
+              <option value="testing">🔍 测试</option>
+              <option value="deployment">🚀 部署</option>
+              <option value="sales">💼 销售</option>
+              <option value="operations">⚙️ 运营</option>
+              <option value="resource_management">📦 资源管理</option>
+              <option value="custom">✏️ 自定义</option>
+            </select>
+            <div class="role-desc" id="role-desc"></div>
+          </div>
+
+          <!-- 角色定位（配置给大模型的人设描述） -->
+          <div class="form-group">
+            <label>角色定位 <span class="form-section-hint" style="font-weight:normal">（配置给大模型的人设描述，会作为系统提示词）</span></label>
+            <textarea id="agent-role-prompt" rows="3" placeholder="详细描述这个AI的专业能力、回答风格、关注重点..."></textarea>
+            <div class="form-hint">选择角色后会显示默认文案，可自由修改成你想要的人设</div>
+          </div>
+
+          <!-- 聊天规则（单聊） -->
+          <div class="form-group">
+            <label>聊天规则 <span class="form-section-hint" style="font-weight:normal">（单聊时生效）</span></label>
+            <select id="agent-rule-template">
+              <option value="strategic_advisor">专属战略顾问</option>
+              <option value="first_principles">第一性原理思考者</option>
+              <option value="socratic">苏格拉底提问者</option>
+              <option value="devils_advocate">魔鬼代言人</option>
+              <option value="consensus_builder">共识构建者</option>
+              <option value="analyst">数据分析师</option>
+              <option value="custom">自定义（不应用任何规则模板）</option>
+            </select>
+            <div class="rule-template-desc" id="rule-template-desc"></div>
+          </div>
+
+          <!-- 群聊规则（勾选启用） -->
+          <div class="form-group">
+            <label>群聊规则 <span class="form-section-hint" style="font-weight:normal">（仅群聊时生效。「追求达成共识」「输出共识结论文档」以及「简单问题给简单答案 / 不主动展开 / 共识后不拆解」是群聊必备规则，每个成员默认勾选，但你可自行取消勾选）</span></label>
+            <div class="rule-checkboxes">
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-simple-answer" checked />
+                <span class="rule-checkbox-text">
+                  <strong>简单问题给简单答案<span style="color:var(--accent);font-weight:bold">（群聊必备·默认勾选）</span></strong>
+                  <small>用户问的是简单问题 → 直接给简短回答，迅速推动共识；不要长篇展开或反复论证</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-no-expand" checked />
+                <span class="rule-checkbox-text">
+                  <strong>用户没要求就不展开<span style="color:var(--accent);font-weight:bold">（群聊必备·默认勾选）</span></strong>
+                  <small>用户没说"展开说说/详细讲讲/深入聊聊"等要求，就保持当前颗粒度，不要自行扩展延伸</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-no-redissect-consensus" checked />
+                <span class="rule-checkbox-text">
+                  <strong>共识达成后不再拆解共识<span style="color:var(--accent);font-weight:bold">（群聊必备·默认勾选）</span></strong>
+                  <small>共识一旦定版就不要再回头质疑/重新论证，让它稳住；继续等待用户抛出新话题</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-reply-to-all" />
+                <span class="rule-checkbox-text">
+                  <strong>回复每个发言者</strong>
+                  <small>群里每个发言过的AI，都必须回复，不遗漏</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-label-target" />
+                <span class="rule-checkbox-text">
+                  <strong>标注回复对象</strong>
+                  <small>回复时标注「回复 @AI名称：」再写回应</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-question-others" />
+                <span class="rule-checkbox-text">
+                  <strong>反问/质疑他人（有理由）</strong>
+                  <small>必须给出反对/质疑的理由和真实依据。若无正当理由请改用「提出疑问」让对方解答；也可以用 @ 提到对方，被 @ 的成员回复顺序会提前</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-can-agree" />
+                <span class="rule-checkbox-text">
+                  <strong>可以同意他人（需说明依据）</strong>
+                  <small>只有在你确实认为他人观点正确时才能同意，并必须说明赞同的理由和真实数据依据，不能无依据附和</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-seek-consensus" checked />
+                <span class="rule-checkbox-text">
+                  <strong>追求达成共识<span style="color:var(--accent);font-weight:bold">（群聊必备·默认勾选）</span></strong>
+                  <small>每轮回复末尾总结当前共识点和分歧点</small>
+                </span>
+              </label>
+              <label class="rule-checkbox">
+                <input type="checkbox" id="rule-output-consensus" checked />
+                <span class="rule-checkbox-text">
+                  <strong>输出共识结论文档<span style="color:var(--accent);font-weight:bold">（群聊必备·默认勾选）</span></strong>
+                  <small>所有AI达成共识后输出结构化结论文档；输出后本轮话题自动结束并重置轮次，等待用户抛出新疑问或新话题</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 系统提示词（基础人设，独立于角色定位） -->
+          <div class="form-group">
+            <label>系统提示词 <span class="form-section-hint" style="font-weight:normal">（基础人设，独立于角色定位）</span></label>
+            <textarea id="agent-system-prompt" placeholder="你是DeepSeek，一个聪明、有逻辑的AI助手..." rows="2"></textarea>
+          </div>
+
+          <!-- 自定义规则（附加补充） -->
+          <div class="form-group">
+            <label>自定义规则 <span class="form-section-hint" style="font-weight:normal">（附加补充，会追加到上述规则之后）</span></label>
+            <textarea id="agent-custom-rules" placeholder="在此添加额外的聊天规则..." rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-save-agent">保存</button>
+        <button class="btn-secondary" data-close="modal-agent">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Group Modal - Step 1: Select Friends -->
+  <div class="modal-overlay" id="modal-new-group" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="group-modal-title">发起群聊</h2>
+        <button class="modal-close" data-modal="modal-new-group">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Step indicator -->
+        <div class="step-indicator">
+          <div class="step active" id="step-1">
+            <span class="step-num">1</span>
+            <span class="step-label">选择好友</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step-2">
+            <span class="step-num">2</span>
+            <span class="step-label">群聊设置</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Select friends -->
+        <div id="group-step-1">
+          <div class="form-group">
+            <label>选择 AI 好友（多选）</label>
+            <div class="friend-select-list" id="friend-select-list">
+            </div>
+          </div>
+          <div id="selected-count" class="selected-count">已选择 0 个好友</div>
+        </div>
+
+        <!-- Step 2: Configure group -->
+        <div id="group-step-2" style="display:none">
+          <div class="form-group">
+            <label>群名称</label>
+            <input type="text" id="group-name" placeholder="如：AI 讨论组" />
+          </div>
+          <div class="form-group">
+            <label>群头像（Emoji）</label>
+            <input type="text" id="group-avatar" placeholder="👥" maxlength="4" />
+          </div>
+          <div class="form-group">
+            <label>话题/群公告</label>
+            <textarea id="group-topic" placeholder="讨论话题描述..." rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>回复顺序（拖拽或点按钮调整）</label>
+            <div class="reply-order-list" id="reply-order-list">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>回复模式</label>
+            <select id="group-reply-mode">
+              <option value="sequential">顺序回复（AI能看到前面AI的回答，可以补充和反问）</option>
+              <option value="parallel">并行回复（AI同时独立回答，互不影响）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>最大讨论轮次（0=不限制）</label>
+            <input type="number" id="group-max-rounds" value="0" min="0" max="20" step="1" />
+            <div class="form-hint">每次你发消息后，所有AI各回复一次算一轮。设为0表示不限制轮次。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-group-prev" style="display:none">上一步</button>
+        <button class="btn-primary" id="btn-group-next">下一步</button>
+        <button class="btn-primary" id="btn-create-group" style="display:none">创建群聊</button>
+        <button class="btn-secondary" data-close="modal-new-group">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Group Member Modal -->
+  <div class="modal-overlay" id="modal-add-member" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>添加群成员</h2>
+        <button class="modal-close" data-modal="modal-add-member">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>选择要加入群聊的 AI 好友（多选）</label>
+          <div class="friend-select-list" id="add-member-list"></div>
+        </div>
+        <div id="add-member-count" class="selected-count">已选择 0 个好友</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-confirm-add-member">添加</button>
+        <button class="btn-secondary" data-close="modal-add-member">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Single Chat Modal -->
+  <div class="modal-overlay" id="modal-new-single" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>发起单聊</h2>
+        <button class="modal-close" data-modal="modal-new-single">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>选择 AI 好友</label>
+          <div class="friend-select-list" id="friend-select-list-single">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-create-single">开始聊天</button>
+        <button class="btn-secondary" data-close="modal-new-single">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Profile Modal -->
+  <div class="modal-overlay" id="modal-contact-profile" style="display:none">
+    <div class="modal modal-sm">
+      <div class="modal-body" style="padding:0">
+        <div id="contact-profile-content">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="modal-confirm" style="display:none">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 id="confirm-title">确认</h2>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message">确认操作？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="btn-confirm-yes">确认</button>
+        <button class="btn-secondary" id="btn-confirm-no">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" style="display:none"></div>
+
+  <!-- QR Sync Modal -->
+  <div class="modal-overlay" id="modal-qr-sync" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>同步到手机</h2>
+        <button class="modal-close" data-modal="modal-qr-sync">×</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p style="margin-bottom:16px;">用手机端 AI Group Chat 扫描下方二维码，即可导入全部 AI 好友和配置（不含聊天记录）。</p>
+        <div id="qr-code-container" style="display:flex;justify-content:center;padding:20px;background:#fff;border-radius:8px;margin-bottom:16px;">
+          <div id="qrcode"></div>
+        </div>
+        <p style="font-size:12px;color:#999;">二维码包含 API Key，请勿截图分享给他人。</p>
+
+        <hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
+        <p style="margin-bottom:8px;">在另一台设备上导入配置：</p>
+        <div class="form-actions" style="justify-content:center;flex-wrap:wrap;gap:8px;">
+          <button class="btn-primary" id="btn-scan-qr" style="display:none;">扫码导入（手机）</button>
+          <button class="btn-secondary" id="btn-qr-file-import">选择配置文件导入</button>
+        </div>
+        <p style="font-size:12px;color:#999;margin-top:8px;">也可手动粘贴配置字符串：</p>
+        <textarea id="qr-manual-input" placeholder="粘贴配置字符串" style="width:100%;height:56px;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:12px;"></textarea>
+        <button class="btn-primary" id="btn-qr-manual-import" style="width:100%;margin-top:8px;">导入</button>
+        <input type="file" id="qr-file-input" accept=".json,application/json" style="display:none" />
+        <div id="qr-scan-result" style="margin-top:8px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modal-qr-sync">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="api-bridge.js"></script>
+  <script src="store.js"></script>
+  <script src="ai-service.js"></script>
+  <script src="renderer.js"></script>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator && !window.electronAPI) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => {
+          console.log('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
