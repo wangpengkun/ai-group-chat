@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      # Expose secrets as job-level env so step `if:` conditions can reference them.
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,10 +66,7 @@ jobs:
 
       # --- Signed RELEASE APK (only when both secrets are set) ---
       - name: Restore release keystore from secrets
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PROPS != '' }}
         working-directory: android
         run: |
           echo "$ANDROID_KEYSTORE_PROPS" > keystore.properties
@@ -73,10 +74,7 @@ jobs:
           echo "keystore restored: $(ls -l ai-chat-release.keystore | awk '{print $5}') bytes"
 
       - name: Build signed release APK
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PROPS != '' }}
         working-directory: android
         run: |
           chmod +x gradlew
@@ -84,7 +82,7 @@ jobs:
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload signed release APK
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PROPS != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: ai-chat-android-release-apk
@@ -92,11 +90,9 @@ jobs:
           retention-days: 30
 
       - name: Publish signed release APK to Release
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PROPS != '' }}
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PROPS != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PROPS: ${{ secrets.ANDROID_KEYSTORE_PROPS }}
         run: |
           gh release upload build-latest android/app/build/outputs/apk/release/app-release.apk --clobber || true
 
