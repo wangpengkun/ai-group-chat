@@ -60,31 +60,22 @@ jobs:
         env:
           OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
           OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+        shell: bash
         run: |
-          # 安装 oss2（重试 3 次，避免偶发网络失败导致 -e 中断整个脚本）
-          python -m pip install --quiet oss2 || python -m pip install --quiet oss2 || python -m pip install --quiet oss2
-          python - <<'PY'
-          import os, sys
-          try:
-              import oss2
-          except ImportError as e:
-              print(f"::error title=oss2 import failed::{e}"); sys.exit(1)
-          kid = os.environ.get('OSS_ACCESS_KEY_ID', '')
-          sec = os.environ.get('OSS_ACCESS_KEY_SECRET', '')
-          if not kid or not sec:
-              print('SKIP: OSS secrets not set'); sys.exit(0)
-          try:
-              auth = oss2.Auth(kid, sec)
-              bucket = oss2.Bucket(auth, 'https://oss-ap-southeast-1.aliyuncs.com', 'ai-group-chat')
-              exe = 'dist/ai-group-chat-Setup.exe'
-              if os.path.exists(exe):
-                  bucket.put_object_from_file('chat/ai-group-chat-Setup.exe', exe)
-                  print('Uploaded: chat/ai-group-chat-Setup.exe', os.path.getsize(exe), 'bytes')
-              else:
-                  print(f"::error title=installer missing::not found: {exe}"); sys.exit(1)
-          except Exception as e:
-              print(f"::error title=OSS upload failed::{e}"); sys.exit(1)
-          PY
+          if [ -z "$OSS_ACCESS_KEY_ID" ] || [ -z "$OSS_ACCESS_KEY_SECRET" ]; then
+            echo "SKIP: OSS secrets not set"; exit 0
+          fi
+          # 下载 ossutil（阿里云官方 CLI，独立二进制，不依赖 Python/pip）
+          curl -sL -o ossutil.zip "https://gosspublic.alicdn.com/ossutil/1.7.19/ossutil-windows-amd64.zip"
+          unzip -o -q ossutil.zip -d ossutil_bin
+          OSSUTIL=$(find ossutil_bin -name "*.exe" | head -1)
+          echo "ossutil 路径: $OSSUTIL"
+          # 上传（-f 强制覆盖旧包，-e/-i/-k 指定 endpoint 和凭证）
+          "$OSSUTIL" cp "dist/ai-group-chat-Setup.exe" "oss://ai-group-chat/chat/ai-group-chat-Setup.exe" -f \
+            -e "oss-ap-southeast-1.aliyuncs.com" \
+            -i "$OSS_ACCESS_KEY_ID" \
+            -k "$OSS_ACCESS_KEY_SECRET"
+          echo "=== OSS 上传完成 ==="
 
       - name: Publish EXE to GitHub Release
         env:
