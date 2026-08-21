@@ -464,7 +464,7 @@ ipcMain.handle('check-for-updates', async () => {
       hasUpdate: hasUpdate,
       version: versionInfo.version,
       currentVersion: APP_VERSION,
-      downloadUrl: versionInfo.downloadUrl || `${UPDATE_URL}/AI-Group-Chat-Setup-${versionInfo.version}.exe`,
+      downloadUrl: versionInfo.downloadUrl || 'https://ai-group-chat.oss-ap-southeast-1.aliyuncs.com/chat/ai-group-chat-Setup.exe',
       releaseNotes: versionInfo.releaseNotes || '',
     };
   } catch (e) {
@@ -478,7 +478,7 @@ ipcMain.handle('download-update', async (event, options) => {
     const downloadUrl = options && options.url ? options.url : null;
     if (!downloadUrl) {
       const updateInfo = await fetchVersionInfo();
-      const url = updateInfo.downloadUrl || `${UPDATE_URL}/AI-Group-Chat-Setup-${updateInfo.version}.exe`;
+      const url = updateInfo.downloadUrl || 'https://ai-group-chat.oss-ap-southeast-1.aliyuncs.com/chat/ai-group-chat-Setup.exe';
       return await downloadAndInstall(url, event);
     }
     return await downloadAndInstall(downloadUrl, event);

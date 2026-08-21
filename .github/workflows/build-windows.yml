@@ -36,22 +36,23 @@ jobs:
         run: |
           # CI 的 Windows runner 是 en-US locale，中文 productName 会触发
           # electron-builder 的 sanitize "Invalid name" 错误（本地中文 locale 无此问题）。
-          # 构建时临时用英文 productName；安装包文件名走 nsis.artifactName（英文），
+          # 构建时临时用英文 productName；安装包文件名走 nsis.artifactName（固定英文名），
           # 快捷方式名仍为中文（nsis.shortcutName="AI共识"）。
-          npm run build -- --config.productName="AI-GongShi"
-        # electron-builder --win → 产物在 dist/，文件名由 artifactName 决定（英文）
+          if ! npm run build -- --config.productName="AI-GongShi" 2>&1 | tee build.log; then
+            echo "::error title=electron-builder build failed::$(tail -40 build.log | tr '\n' ' ' | tr '\r' ' ')"
+            exit 1
+          fi
 
-      - name: Rename EXE to english filename
+      - name: Rename EXE to fixed filename
         shell: bash
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          # 只重命名 installer（跳过 uninstaller 和已是英文名的文件）
+          # 统一为固定文件名 ai-group-chat-Setup.exe（每次覆盖旧包）
           for f in dist/*.exe; do
             base=$(basename "$f")
-            if [[ "$base" == __uninstaller* || "$base" == ai-group-chat-* ]]; then
+            if [[ "$base" == __uninstaller* || "$base" == "ai-group-chat-Setup.exe" ]]; then
               continue
             fi
-            mv "$f" "dist/ai-group-chat-Setup-${VERSION}.exe"
+            mv "$f" "dist/ai-group-chat-Setup.exe"
           done
           echo "=== EXE 列表 ==="
           ls -la dist/*.exe
@@ -70,11 +71,13 @@ jobs:
               print('SKIP: OSS secrets not set'); sys.exit(0)
           auth = oss2.Auth(kid, sec)
           bucket = oss2.Bucket(auth, 'https://oss-ap-southeast-1.aliyuncs.com', 'ai-group-chat')
-          # 只上传 installer（ai-group-chat-*.exe），跳过 uninstaller
-          for exe in glob.glob('dist/ai-group-chat-*.exe'):
-              key = 'chat/' + os.path.basename(exe)
-              bucket.put_object_from_file(key, exe)
-              print('Uploaded:', key, os.path.getsize(exe), 'bytes')
+          # 固定文件名覆盖上传（替换旧包，不新增）
+          exe = 'dist/ai-group-chat-Setup.exe'
+          if os.path.exists(exe):
+              bucket.put_object_from_file('chat/ai-group-chat-Setup.exe', exe)
+              print('Uploaded: chat/ai-group-chat-Setup.exe', os.path.getsize(exe), 'bytes')
+          else:
+              print('ERROR: installer not found:', exe)
           PY
 
       - name: Publish EXE to GitHub Release
@@ -82,4 +85,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create build-latest --title "Latest build" --prerelease --notes "Auto build from ${GITHUB_SHA::7}" || true
-          gh release upload build-latest dist/ai-group-chat-*.exe --clobber
+          gh release upload build-latest dist/ai-group-chat-Setup.exe --clobber
