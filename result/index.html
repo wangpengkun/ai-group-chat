@@ -112,6 +112,38 @@
     }
     .hero-meta span { margin: 0 8px; }
 
+    /* Download Dropdown */
+    .download-dropdown { position: relative; display: inline-block; }
+    .dropdown-arrow { font-size: 12px; margin-left: 4px; transition: transform 0.25s; display: inline-block; }
+    .download-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+      min-width: 340px; padding: 8px; z-index: 300;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .download-dropdown.open .dropdown-menu {
+      opacity: 1; visibility: visible; pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 10px;
+      transition: background 0.15s; cursor: pointer;
+    }
+    .dropdown-item:hover { background: var(--green-light); }
+    .dropdown-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+    .dropdown-text { flex: 1; }
+    .dropdown-title { font-size: 15px; font-weight: 600; color: var(--dark); }
+    .dropdown-desc { font-size: 12px; color: var(--gray); margin-top: 2px; }
+    .dropdown-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+      background: var(--green-light); color: var(--green); flex-shrink: 0;
+    }
+
     /* Preview */
     .preview {
       max-width: 900px; margin: 0 auto; padding: 0 24px 60px;
@@ -350,24 +382,46 @@
     <h1>和多个 <span class="highlight">AI</span> 一起<br>建群聊项目</h1>
     <p>类似微信的桌面应用，把 DeepSeek、通义千问、豆包、Kimi、智谱、WorkBuddy 等 AI 拉进同一个群，分别担任「市场洞察/产品/开发/测试/部署/销售/运营」等角色，从 0 到 1 讨论完整项目，互相反问、达成共识。</p>
     <div class="hero-actions">
-      <a href="AI-Group-Chat-Setup-1.5.0.exe" download class="btn-download">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        下载 Windows 安装包
-      </a>
-      <a href="https://28b1475f97754e42bf1b69437d15b16d.app.workbuddy.link" target="_blank" class="btn-secondary" style="background:#0052D9;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px;">
-        手机版 (PWA)
-      </a>
-      <a href="AI-Group-Chat-1.5.0.apk" download class="btn-secondary" style="background:#3ddc84;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px;">
-        下载 Android APK
-      </a>
+      <div class="download-dropdown" id="heroDropdown">
+        <button class="btn-download" onclick="toggleDropdown('heroDropdown')" style="cursor:pointer;border:none;font-family:inherit;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          下载应用
+          <span class="dropdown-arrow">▾</span>
+        </button>
+        <div class="dropdown-menu">
+          <a href="AI-Group-Chat-Setup-1.5.0.exe" download class="dropdown-item">
+            <span class="dropdown-icon">💻</span>
+            <div class="dropdown-text">
+              <div class="dropdown-title">Windows 版</div>
+              <div class="dropdown-desc">v1.5.0 · ~77 MB · exe 安装包</div>
+            </div>
+            <span class="dropdown-badge">推荐</span>
+          </a>
+          <a href="https://github.com/wangpengkun/ai-group-chat/releases/download/build-latest/app-release.apk" download class="dropdown-item">
+            <span class="dropdown-icon">🤖</span>
+            <div class="dropdown-text">
+              <div class="dropdown-title">Android 版</div>
+              <div class="dropdown-desc">v1.5.0 · ~3.4 MB · 签名版 APK</div>
+            </div>
+          </a>
+          <a href="https://28b1475f97754e42bf1b69437d15b16d.app.workbuddy.link" target="_blank" class="dropdown-item">
+            <span class="dropdown-icon">📱</span>
+            <div class="dropdown-text">
+              <div class="dropdown-title">iOS 版</div>
+              <div class="dropdown-desc">Safari 打开 → 添加到主屏幕</div>
+            </div>
+            <span class="dropdown-badge">PWA</span>
+          </a>
+        </div>
+      </div>
       <a href="#steps" class="btn-secondary">查看使用教程</a>
     </div>
     <div class="hero-meta">
-      <span>Windows 10/11</span>·<span>~74 MB</span>·<span>Android APK</span>·<span>免费使用</span>·<span>数据本地存储</span>·<span>支持手机PWA</span>
+      <span>Windows 10/11</span>·<span>Android 8.0+</span>·<span>iOS (PWA)</span>·<span>免费使用</span>·<span>数据本地存储</span>
     </div>
   </section>
 
@@ -642,60 +696,48 @@
   <!-- Download CTA -->
   <section class="download-cta" id="download">
     <h2>立即下载体验</h2>
-    <p>免费使用，数据全部本地存储，无需注册</p>
+    <p>选择你的平台，免费使用，数据全部本地存储</p>
 
-    <!-- Windows -->
-    <div style="margin-bottom:40px;">
-      <h3 style="font-size:18px;margin-bottom:16px;">💻 Windows 桌面版</h3>
-      <a href="AI-Group-Chat-Setup-1.5.0.exe" download class="btn-download">
+    <!-- Platform Dropdown -->
+    <div class="download-dropdown" id="ctaDropdown" style="margin-bottom:32px;">
+      <button class="btn-download" onclick="toggleDropdown('ctaDropdown')" style="cursor:pointer;border:none;font-family:inherit;font-size:18px;padding:16px 40px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        下载 AI Group Chat Setup 1.5.0.exe
-      </a>
-      <div class="download-info">
-        Windows 10/11 · ~77 MB · v1.5.0
-      </div>
-    </div>
-
-    <!-- Android APK -->
-    <div style="margin-bottom:40px;">
-      <h3 style="font-size:18px;margin-bottom:16px;">🤖 Android 版（APK 直装）</h3>
-      <a href="AI-Group-Chat-1.5.0.apk" download class="btn-download" style="background:#3ddc84;box-shadow:0 4px 14px rgba(61,220,132,0.35);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        下载 AI Group Chat 1.5.0.apk
-      </a>
-      <div class="download-info">
-        Android 8.0+ · 约 10 MB · v1.5.0 · 含文档读取 + 微信风手机 UI
-      </div>
-      <p style="font-size:12px;color:var(--gray);margin-top:8px;">
-        💡 下载后直接点击安装；若提示"未知来源"，请到 设置 → 安全 → 允许安装未知应用 后重试。
-        备用直链：<a href="https://github.com/wangpengkun/ai-group-chat/releases/download/build-latest/app-debug.apk" target="_blank" style="color:var(--green);">GitHub Release</a>
-      </p>
-    </div>
-
-    <!-- Mobile -->
-    <div style="margin-bottom:40px;">
-      <h3 style="font-size:18px;margin-bottom:16px;">📱 手机版（PWA）</h3>
-      <p style="font-size:14px;color:var(--gray);margin-bottom:20px;max-width:500px;margin-left:auto;margin-right:auto;">
-        手机浏览器打开下方链接，按指引添加到桌面即可像原生 App 一样使用，支持离线缓存。
-      </p>
-      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-        <a href="https://28b1475f97754e42bf1b69437d15b16d.app.workbuddy.link" target="_blank" class="btn-download" style="background:#0052D9;box-shadow:0 4px 14px rgba(0,82,217,0.3);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-            <line x1="12" y1="18" x2="12.01" y2="18"/>
-          </svg>
-          打开手机版
+        选择版本下载
+        <span class="dropdown-arrow">▾</span>
+      </button>
+      <div class="dropdown-menu">
+        <a href="AI-Group-Chat-Setup-1.5.0.exe" download class="dropdown-item">
+          <span class="dropdown-icon">💻</span>
+          <div class="dropdown-text">
+            <div class="dropdown-title">Windows 版</div>
+            <div class="dropdown-desc">v1.5.0 · ~77 MB · exe 安装包 · Win 10/11</div>
+          </div>
+          <span class="dropdown-badge">推荐</span>
         </a>
-        <a href="#mobile-guide" class="btn-secondary">查看安装教程</a>
+        <a href="https://github.com/wangpengkun/ai-group-chat/releases/download/build-latest/app-release.apk" download class="dropdown-item">
+          <span class="dropdown-icon">🤖</span>
+          <div class="dropdown-text">
+            <div class="dropdown-title">Android 版</div>
+            <div class="dropdown-desc">v1.5.0 · ~3.4 MB · 签名版 APK · Android 8.0+</div>
+          </div>
+        </a>
+        <a href="https://28b1475f97754e42bf1b69437d15b16d.app.workbuddy.link" target="_blank" class="dropdown-item">
+          <span class="dropdown-icon">📱</span>
+          <div class="dropdown-text">
+            <div class="dropdown-title">iOS 版</div>
+            <div class="dropdown-desc">PWA · Safari 打开 → 添加到主屏幕</div>
+          </div>
+          <span class="dropdown-badge">PWA</span>
+        </a>
       </div>
+    </div>
+
+    <div class="download-info" style="margin-bottom:32px;">
+      💡 点击「选择版本下载」→ 选择你的平台 → 自动开始下载
     </div>
 
     <!-- Mobile install guide -->
@@ -758,6 +800,28 @@
           target.scrollIntoView({ behavior: 'smooth' });
         }
       });
+    });
+
+    // Download dropdown toggle
+    function toggleDropdown(id) {
+      const el = document.getElementById(id);
+      // close other open dropdowns
+      document.querySelectorAll('.download-dropdown.open').forEach(d => {
+        if (d.id !== id) d.classList.remove('open');
+      });
+      el.classList.toggle('open');
+    }
+    // close on outside click
+    document.addEventListener('click', e => {
+      document.querySelectorAll('.download-dropdown.open').forEach(d => {
+        if (!d.contains(e.target)) d.classList.remove('open');
+      });
+    });
+    // close on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.download-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
     });
   </script>
 </body>

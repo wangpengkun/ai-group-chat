@@ -1,6 +1,6 @@
 // Service Worker for AI Group Chat PWA
 // Bump CACHE_NAME on every release so clients drop the previous cache.
-const CACHE_NAME = 'ai-chat-v1.5.0';
+const CACHE_NAME = 'ai-chat-v1.5.1';
 const ASSETS = [
   './',
   './index.html',
