@@ -1,6 +1,6 @@
 {
   "name": "zhuzibaishang-ai-group-chat",
-  "version": "1.5.0",
+  "version": "1.0.0",
   "description": "诸子百商多智能体群聊软件 - 与多个 AI 智能体一起群聊",
   "author": "杭州诸子百商科技有限责任公司",
   "main": "main.js",
