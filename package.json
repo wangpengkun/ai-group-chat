@@ -34,7 +34,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "AI共识"
+      "shortcutName": "AI共识",
+      "artifactName": "ai-group-chat-Setup-${version}.${ext}"
     }
   },
   "devDependencies": {
