@@ -96,6 +96,23 @@ jobs:
         run: |
           gh release upload build-latest android/app/build/outputs/apk/release/app-release.apk --clobber || true
 
+      - name: Upload APK to Pgyer (蒲公英)
+        env:
+          PGY_API_KEY: ${{ secrets.PGY_API_KEY }}
+        run: |
+          APK=""
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            APK="android/app/build/outputs/apk/release/app-release.apk"
+          elif [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          fi
+          if [ -n "$APK" ] && [ -n "$PGY_API_KEY" ]; then
+            echo "Uploading $APK to Pgyer..."
+            curl -s -F "file=@${APK}" -F "_api_key=${PGY_API_KEY}" -F "buildUpdateDescription=v$(node -p "require('./package.json').version") auto build ${GITHUB_SHA::7}" https://www.pgyer.com/apiv2/app/upload
+          else
+            echo "SKIP: no APK or PGY_API_KEY not set"
+          fi
+
   build-ios:
     runs-on: macos-latest
     steps:

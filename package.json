@@ -1,8 +1,8 @@
 {
-  "name": "ai-group-chat",
+  "name": "zhuzibaishang-ai-group-chat",
   "version": "1.5.0",
-  "description": "AI Group Chat - Chat with multiple AI agents in groups",
-  "author": "WorkBuddy",
+  "description": "诸子百商多智能体群聊软件 - 与多个 AI 智能体一起群聊",
+  "author": "杭州诸子百商科技有限责任公司",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -10,10 +10,10 @@
     "build:dir": "electron-builder --win --dir"
   },
   "build": {
-    "appId": "com.workbuddy.aigroupchat",
-    "productName": "AI Group Chat",
+    "appId": "com.zhuzibaishang.aigroupchat",
+    "productName": "诸子百商多智能体群聊",
     "directories": {
-      "output": "dist-150"
+      "output": "dist"
     },
     "files": [
       "main.js",
@@ -34,7 +34,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "AI Group Chat"
+      "shortcutName": "诸子百商多智能体群聊"
     }
   },
   "devDependencies": {

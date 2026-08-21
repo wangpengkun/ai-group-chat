@@ -1,6 +1,6 @@
 const config = {
-  appId: 'com.workbuddy.aichat',
-  appName: 'AI Group Chat',
+  appId: 'com.zhuzibaishang.aichat',
+  appName: '诸子百商多智能体群聊',
   webDir: 'src',
   android: {
     allowMixedContent: true,

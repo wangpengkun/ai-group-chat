@@ -1,0 +1,67 @@
+name: Build Windows EXE + Upload OSS
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows EXE
+        run: npm run build
+        # electron-builder --win → 产物在 dist/，中文名带空格
+
+      - name: Rename EXE to english filename
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          # 找 dist 下的 EXE（排除已经是 ai-group-chat-* 的）
+          for f in dist/*.exe; do
+            base=$(basename "$f")
+            if [[ "$base" != ai-group-chat-* ]]; then
+              mv "$f" "dist/ai-group-chat-Setup-${VERSION}.exe"
+            fi
+          done
+          echo "=== 重命名后的 EXE ==="
+          ls -la dist/*.exe
+
+      - name: Upload EXE to OSS
+        env:
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+        run: |
+          python -m pip install --quiet oss2
+          python - <<'PY'
+          import oss2, glob, os, sys
+          kid = os.environ.get('OSS_ACCESS_KEY_ID', '')
+          sec = os.environ.get('OSS_ACCESS_KEY_SECRET', '')
+          if not kid or not sec:
+              print('SKIP: OSS secrets not set'); sys.exit(0)
+          auth = oss2.Auth(kid, sec)
+          bucket = oss2.Bucket(auth, 'https://oss-ap-southeast-1.aliyuncs.com', 'ai-group-chat')
+          for exe in glob.glob('dist/*.exe'):
+              key = 'chat/' + os.path.basename(exe)
+              bucket.put_object_from_file(key, exe)
+              print('Uploaded:', key, os.path.getsize(exe), 'bytes')
+          PY
+
+      - name: Publish EXE to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create build-latest --title "Latest build" --prerelease --notes "Auto build from ${GITHUB_SHA::7}" || true
+          gh release upload build-latest dist/*.exe --clobber

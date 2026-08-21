@@ -19,7 +19,7 @@ const UPDATE_SOURCES = [
   'https://cdn.jsdelivr.net/gh/wangpengkun/ai-group-chat@main/result'
 ];
 // Where installers are hosted for download (explicit downloadUrl in version.json takes priority)
-const UPDATE_URL = 'https://02aeb0d7dbf74bb087de2f8551341eb2.app.workbuddy.link';
+const UPDATE_URL = 'https://ai-chat.zhuzibaishang.com';
 const APP_VERSION = app.getVersion();
 
 // Fetch version.json trying each stable source in order
