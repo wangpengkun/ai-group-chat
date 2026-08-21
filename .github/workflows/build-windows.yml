@@ -21,8 +21,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Cache electron-builder binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/AppData/Local/electron-builder/Cache
+            ~/AppData/Local/electron/Cache
+          key: ${{ runner.os }}-electron-builder-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-
+
       - name: Build Windows EXE
-        run: npm run build
+        shell: bash
+        run: |
+          # 重试最多 3 次：electron-builder 构建时会下载 NSIS/winCodeSign，
+          # 偶发网络失败导致打包中断，重试即可恢复
+          npm run build || npm run build || npm run build
         # electron-builder --win → 产物在 dist/，中文名带空格
 
       - name: Rename EXE to english filename

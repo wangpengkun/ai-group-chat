@@ -1,7 +1,7 @@
 {
   "name": "zhuzibaishang-ai-group-chat",
   "version": "1.0.0",
-  "description": "诸子百商多智能体群聊软件 - 与多个 AI 智能体一起群聊",
+  "description": "AI共识 - 与多个 AI 智能体一起群聊",
   "author": "杭州诸子百商科技有限责任公司",
   "main": "main.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "build": {
     "appId": "com.zhuzibaishang.aigroupchat",
-    "productName": "诸子百商多智能体群聊",
+    "productName": "AI共识",
     "directories": {
       "output": "dist"
     },
@@ -34,7 +34,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "诸子百商多智能体群聊"
+      "shortcutName": "AI共识"
     }
   },
   "devDependencies": {
