@@ -2137,9 +2137,13 @@ body {
   .bottom-tabbar .tab-item svg { width: 24px; height: 24px; }
   .bottom-tabbar .tab-item.active { color: var(--accent); }
 
-  /* Chat window fills the screen above the tab bar */
+  /* Chat window fills the screen above the tab bar.
+     flex:0 0 auto overrides the desktop `flex:1` so the fixed height below
+     actually takes effect (otherwise flex-grow stretches it to full viewport
+     and the bottom tab bar covers the input area). */
   .chat-window {
     width: 100%;
+    flex: 0 0 auto;
     height: calc(100vh - 56px - env(safe-area-inset-bottom, 0px));
     height: calc(100dvh - 56px - env(safe-area-inset-bottom, 0px));
   }
