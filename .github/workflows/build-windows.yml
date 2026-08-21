@@ -66,7 +66,7 @@ jobs:
             echo "SKIP: OSS secrets not set"; exit 0
           fi
           # 下载 ossutil（阿里云官方 CLI，独立二进制，不依赖 Python/pip）
-          curl -sL -o ossutil.zip "https://gosspublic.alicdn.com/ossutil/1.7.19/ossutil-windows-amd64.zip"
+          curl -sL -o ossutil.zip "https://gosspublic.alicdn.com/ossutil/1.7.14/ossutil64.zip"
           unzip -o -q ossutil.zip -d ossutil_bin
           OSSUTIL=$(find ossutil_bin -name "*.exe" | head -1)
           echo "ossutil 路径: $OSSUTIL"
