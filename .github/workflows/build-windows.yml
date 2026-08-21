@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
@@ -34,23 +34,26 @@ jobs:
       - name: Build Windows EXE
         shell: bash
         run: |
-          # 重试最多 3 次：electron-builder 构建时会下载 NSIS/winCodeSign，
-          # 偶发网络失败导致打包中断，重试即可恢复
-          npm run build || npm run build || npm run build
-        # electron-builder --win → 产物在 dist/，中文名带空格
+          # CI 的 Windows runner 是 en-US locale，中文 productName 会触发
+          # electron-builder 的 sanitize "Invalid name" 错误（本地中文 locale 无此问题）。
+          # 构建时临时用英文 productName；安装包文件名走 nsis.artifactName（英文），
+          # 快捷方式名仍为中文（nsis.shortcutName="AI共识"）。
+          npm run build -- --config.productName="AI-GongShi"
+        # electron-builder --win → 产物在 dist/，文件名由 artifactName 决定（英文）
 
       - name: Rename EXE to english filename
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          # 找 dist 下的 EXE（排除已经是 ai-group-chat-* 的）
+          # 只重命名 installer（跳过 uninstaller 和已是英文名的文件）
           for f in dist/*.exe; do
             base=$(basename "$f")
-            if [[ "$base" != ai-group-chat-* ]]; then
-              mv "$f" "dist/ai-group-chat-Setup-${VERSION}.exe"
+            if [[ "$base" == __uninstaller* || "$base" == ai-group-chat-* ]]; then
+              continue
             fi
+            mv "$f" "dist/ai-group-chat-Setup-${VERSION}.exe"
           done
-          echo "=== 重命名后的 EXE ==="
+          echo "=== EXE 列表 ==="
           ls -la dist/*.exe
 
       - name: Upload EXE to OSS
@@ -67,7 +70,8 @@ jobs:
               print('SKIP: OSS secrets not set'); sys.exit(0)
           auth = oss2.Auth(kid, sec)
           bucket = oss2.Bucket(auth, 'https://oss-ap-southeast-1.aliyuncs.com', 'ai-group-chat')
-          for exe in glob.glob('dist/*.exe'):
+          # 只上传 installer（ai-group-chat-*.exe），跳过 uninstaller
+          for exe in glob.glob('dist/ai-group-chat-*.exe'):
               key = 'chat/' + os.path.basename(exe)
               bucket.put_object_from_file(key, exe)
               print('Uploaded:', key, os.path.getsize(exe), 'bytes')
@@ -78,4 +82,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create build-latest --title "Latest build" --prerelease --notes "Auto build from ${GITHUB_SHA::7}" || true
-          gh release upload build-latest dist/*.exe --clobber
+          gh release upload build-latest dist/ai-group-chat-*.exe --clobber
