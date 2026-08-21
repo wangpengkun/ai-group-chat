@@ -33,15 +33,14 @@ jobs:
 
       - name: Build Windows EXE
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # CI 的 Windows runner 是 en-US locale，中文 productName 会触发
-          # electron-builder 的 sanitize "Invalid name" 错误（本地中文 locale 无此问题）。
-          # 构建时临时用英文 productName；安装包文件名走 nsis.artifactName（固定英文名），
-          # 快捷方式名仍为中文（nsis.shortcutName="AI共识"）。
-          if ! npm run build -- --config.productName="AI-GongShi" 2>&1 | tee build.log; then
-            echo "::error title=electron-builder build failed::$(tail -40 build.log | tr '\n' ' ' | tr '\r' ' ')"
-            exit 1
-          fi
+          # 关键：--publish never 避免打 tag 后 electron-builder 自动尝试发布
+          # 到 GitHub Release 而报 "GitHub Personal Access Token is not set"。
+          # 发布由下方单独的 gh release 步骤负责。
+          # productName 用 package.json 里的中文「AI共识」。
+          npm run build -- --publish never
 
       - name: Rename EXE to fixed filename
         shell: bash
