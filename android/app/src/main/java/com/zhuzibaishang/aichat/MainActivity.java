@@ -1,4 +1,4 @@
-package com.workbuddy.aichat;
+package com.zhuzibaishang.aichat;
 
 import com.getcapacitor.BridgeActivity;
 
