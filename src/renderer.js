@@ -29,6 +29,11 @@ const App = {
     this.setupStreamListeners();
     this.bindEvents();
     this.renderAll();
+    // 移动端（微信风）：默认显示 AI 列表页 + 绑定右滑返回手势
+    if (APIBridge.isMobile()) {
+      this.bindSwipeBack();
+      this.openMobileSidebar();
+    }
     // Check for updates after 3 seconds
     setTimeout(() => this.checkForUpdates(false), 3000);
   },
@@ -231,7 +236,14 @@ const App = {
 
     // Mobile menu toggle
     const menuToggle = document.getElementById('btn-menu-toggle');
-    if (menuToggle) menuToggle.addEventListener('click', () => this.toggleMobileSidebar());
+    if (menuToggle) menuToggle.addEventListener('click', () => {
+      // 移动端聊天全屏时：左上角按钮作为「返回」→ 回到列表页
+      if (APIBridge.isMobile() && document.body.classList.contains('chatting')) {
+        this.exitChatting();
+      } else {
+        this.toggleMobileSidebar();
+      }
+    });
     const backdrop = document.getElementById('mobile-backdrop');
     if (backdrop) backdrop.addEventListener('click', () => this.closeMobileSidebar());
   },
@@ -261,6 +273,34 @@ const App = {
     if (!sidebar) return;
     sidebar.classList.add('mobile-open');
     if (backdrop) backdrop.classList.add('show');
+  },
+
+  // 退出聊天全屏模式，返回 AI 列表页（微信风返回）
+  exitChatting() {
+    document.body.classList.remove('chatting');
+    this.switchNav('chats');
+    this.setBottomTab('chats');
+    this.openMobileSidebar();
+  },
+
+  // 右滑返回：聊天全屏时，向右滑动回到列表页
+  bindSwipeBack() {
+    let startX = 0, startY = 0;
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (!document.body.classList.contains('chatting')) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      // 向右滑动超过 60px 且以横向为主 → 返回
+      if (dx > 60 && Math.abs(dx) > Math.abs(dy)) {
+        this.exitChatting();
+      }
+    }, { passive: true });
   },
 
   // Highlight the active mobile bottom tab (chats / contacts / me)
@@ -331,6 +371,10 @@ const App = {
         this.renderConvList();
         this.renderActiveChat();
         this.closeMobileSidebar();
+        // 移动端：点击会话进入聊天全屏模式（隐藏底部 tab，输入框贴底）
+        if (APIBridge.isMobile()) {
+          document.body.classList.add('chatting');
+        }
       });
     });
   },

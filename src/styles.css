@@ -2166,4 +2166,17 @@ body {
     max-width: 60vw;
     overflow-x: auto;
   }
+
+  /* ===== 聊天全屏模式（微信风）：隐藏底部 tab，输入框贴底 ===== */
+  /* menu-toggle 图标：默认汉堡，全屏聊天时返回箭头 */
+  .menu-toggle .icon-back { display: none; }
+  body.chatting .menu-toggle .icon-back { display: block; }
+  body.chatting .menu-toggle .icon-menu { display: none; }
+
+  /* 全屏聊天：隐藏底部 tab，聊天窗口占满整个视口 */
+  body.chatting .bottom-tabbar { display: none !important; }
+  body.chatting .chat-window {
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
 }
